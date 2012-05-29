@@ -5,38 +5,25 @@
     <meta charset="UTF-8"/>
     <!-- 公共库 -->
     <script type="text/javascript" src='javascripts/jquery/jquery-1.7.1.min.js'></script>
+    <script type="text/javascript" src='javascripts/underscore/underscore-min.js'></script>
+    <script type="text/javascript" src='javascripts/backbone/backbone-min.js'></script>
+    <!--自定义库-->
+    <script type="text/javascript" src='javascripts/user_list.js'></script>
 </head>
 <body>
 <h2>列表示例</h2>
 <p>
-   <div>输入姓名：<input id="personNameInput" /><button id="addNameButton">加入</button></div>
+    <div>输入姓名：<span id="personNameInput"></span></div>
+   <!--<div>输入姓名：<input id="personNameInput" /><button id="addNameButton">加入</button></div>-->
 </p>
 <hr />
 <p>
   <h4>姓名列表</h4>
-  <ul id="nameList">
+    <div id="userList"></div>
+  <!--<ul id="nameList">-->
   </ul>
 </p>
-<script>
-    $(document).ready(function(){
-        $('#addNameButton').on('click',function(){
-            var personName=$('#personNameInput').val();
-            var personNameDiv=$('#personNameInput').data('currentPersonNameDiv')||$('<li><span></span> <a href="#">删除</a></li>');
-            personNameDiv.find('span').text(personName);
-            personNameDiv.find('a').on('click',function(){
-                personNameDiv.remove();
-                return false;
-            });
-
-            personNameDiv.on('click',function(){
-                $('#personNameInput').val(personName);
-                $('#personNameInput').data('currentPersonNameDiv',personNameDiv);
-            });
-            $('#nameList').append(personNameDiv);
-            $('#personNameInput').val('');
-            $('#personNameInput').data('currentPersonNameDiv',null);
-        });
-    });
-</script>
+<!--<script>-->
+<!--</script>-->
 </body>
 </html>
