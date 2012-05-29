@@ -6,132 +6,136 @@
  * To change this template use File | Settings | File Templates.
  */
 
-$(document).ready(function () {
-    var User = Backbone.Model.extend({
-    });
+var View = Backbone.View.extend({
+    register:function (state) {
+        this.state = state;
+        return this;
+    }
+});
 
-    var UserView = Backbone.View.extend({
-        tagName:'li',
-        render:function () {
+var User = Backbone.Model.extend({
+});
+
+var UserView = View.extend({
+    tagName:'li',
+    render:function () {
+        var view = this;
+
+        this.userNameEl = $('<span></span>')
+        this.$el.append(this.userNameEl);
+        this.$el.append($('<button>删除</button>'));
+        this.setUserName();
+
+        this.model.on('change:name', function (user) {
+            view.setUserName();
+        });
+        return this;
+    },
+    setUserName:function () {
+        this.userNameEl.text(this.model.get('name'));
+    },
+    events:{
+        'click button':'delete',
+        'click':'modify'
+    },
+    delete:function () {
+        this.state.trigger('removeUser', this.model);
+        this.remove();
+        return false;
+    },
+    modify:function () {
+        this.state.trigger('modifyUser', this.model);
+    }
+});
+
+var UserInputView = View.extend({
+    inputElement:$('<input />'),
+    addButton:$('<button>加入</button>'),
+    render:function () {
+        this.$el.append(this.inputElement);
+        this.$el.append(this.addButton);
+        return this;
+    },
+    events:{
+        'click button':'addToList'
+    },
+    addToList:function () {
+        if (this.currentUser) {
+            this.currentUser.set('name', this.inputElement.val());
+            this.currentUser = null;
+        } else {
             var view = this;
-
-            this.userNameEl = $('<span></span>')
-            this.$el.append(this.userNameEl);
-            this.$el.append($('<button>删除</button>'));
-            this.setUserName();
-
-            this.model.on('change:name', function (user) {
-                view.setUserName();
+            var user = new User({
+                name:view.inputElement.val()
             });
-            return this;
-        },
-        setUserName:function () {
-            this.userNameEl.text(this.model.get('name'));
-        },
-        register:function (state) {
-            this.state = state;
-            return this;
-        },
-        events:{
-            'click button':'delete',
-            'click':'modify'
-        },
-        delete:function () {
-            this.state.trigger('removeUser', this.model);
-            this.remove();
-            return false;
-        },
-        modify:function () {
-            this.state.trigger('modifyUser', this.model);
+            this.state.trigger('addUser', user);
         }
-    });
-
-    var UserInputView = Backbone.View.extend({
-        inputElement:$('<input />'),
-        addButton:$('<button>加入</button>'),
-        render:function () {
-            this.$el.append(this.inputElement);
-            this.$el.append(this.addButton);
-            return this;
-        },
-        register:function (state) {
-            this.state = state;
-            return this;
-        },
-        events:{
-            'click button':'addToList'
-        },
-        addToList:function () {
-            if (this.currentUser) {
-                this.currentUser.set('name', this.inputElement.val());
-                this.currentUser = null;
-            } else {
-                var view = this;
-                var user = new User({
-                    name:view.inputElement.val()
-                });
-                this.state.trigger('addUser', user);
-            }
-            this.inputElement.val('');
-        },
-        setCurrentUser:function (user) {
+        this.inputElement.val('');
+    },
+    setCurrentUser:function (user) {
+        if (user) {
             this.currentUser = user;
             this.inputElement.val(user.get('name'));
+        } else {
+            this.currentUser = null;
+            this.inputElement.val('');
         }
-    });
 
-    var UserCollection = Backbone.Collection.extend({
-        model:User
-    });
+    }
+});
 
-    var UserListView = Backbone.View.extend({
-        ulElement:$('<ul></ul>'),
-        render:function () {
-            var view = this;
-            this.ulElement.appendTo(this.$el);
+var UserCollection = Backbone.Collection.extend({
+    model:User
+});
 
-            this.collection.on('add', function (user) {
-                var userView = new UserView({
-                    model:user
-                });
-                userView.register(view.state).render().$el.appendTo(view.$el);
+var UserListView = View.extend({
+    ulElement:$('<ul></ul>'),
+    render:function () {
+        var view = this;
+        this.ulElement.appendTo(this.$el);
+
+        this.collection.on('add', function (user) {
+            var userView = new UserView({
+                model:user
             });
-            return this;
-        },
-        register:function (state) {
-            this.state = state;
-            return this;
-        }
-    });
+            userView.register(view.state).render().$el.appendTo(view.$el);
+        });
+        return this;
+    }
+});
 
-    var UserListComponentView = Backbone.View.extend({
-        state:new Backbone.Model(),
-        userInputView:new UserInputView({
-            el:'#personNameInput'
-        }),
-        userListView:new UserListView({
+var UserListComponentView = Backbone.View.extend({
+    state:new Backbone.Model(),
+    initialize:function (userInputEl, userListEl) {
+        this.userInputView = new UserInputView({
+            el:userInputEl
+        });
+        this.userListView = new UserListView({
             collection:new UserCollection(),
-            el:'#userList'
-        }),
-        render:function () {
-            var view = this;
-            this.userListView.register(this.state).render();
-            this.userInputView.register(this.state).render();
+            el:userListEl
+        })
+    },
+    render:function () {
+        var view = this;
+        this.userListView.register(this.state).render();
+        this.userInputView.register(this.state).render();
 
-            this.state.on('addUser', function (user) {
-                view.userListView.collection.add(user);
-            });
+        this.state.on('addUser', function (user) {
+            view.userListView.collection.add(user);
+        });
 
-            this.state.on('removeUser', function (user) {
-                view.userListView.collection.remove(user);
-            });
+        this.state.on('removeUser', function (user) {
+            view.userListView.collection.remove(user);
+            view.userInputView.setCurrentUser(null);
+        });
 
-            this.state.on('modifyUser', function (user) {
-                view.userInputView.setCurrentUser(user);
-            });
-        }
-    });
+        this.state.on('modifyUser', function (user) {
+            view.userInputView.setCurrentUser(user);
+        });
+    }
+});
 
-    var userListComponentView = new UserListComponentView();
+$(document).ready(function () {
+    var userListComponentView = new UserListComponentView('#personNameInput', '#userList');
     userListComponentView.render();
 });
