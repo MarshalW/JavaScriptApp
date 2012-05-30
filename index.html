@@ -11,34 +11,14 @@
     <script type="text/javascript" src='javascripts/user_list.js'></script>
 </head>
 <body>
-<h2>列表示例</h2>
-<p>
-    <div>输入姓名：<span id="personNameInput"></span></div>
-</p>
-<hr />
-<p>
-  <h4>姓名列表</h4>
-  <div id="userList"></div>
-</p>
+<p id="app"></p>
 
-<hr />
-
-<p>
-<div>Input your name：<span id="personNameInput1"></span></div>
-</p>
-<hr />
-<p>
-<h4>Name list</h4>
-<div id="userList1"></div>
-</p>
-
+<p id="app1"></p>
 <script>
-    $(document).ready(function () {
-        var userListComponentView = new marshal.UserListComponentView('#personNameInput', '#userList');
-        userListComponentView.render();
-
-        var userListComponentView = new marshal.UserListComponentView('#personNameInput1', '#userList1');
-        userListComponentView.render();
+    $(document).ready(function(){
+        new marshal.UserEditor('#app');
+        new marshal.UserEditor('#app1');
+        Backbone.history.start();
     });
 </script>
 </body>
